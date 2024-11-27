@@ -5,11 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    "https://ai-sdk-preview-internal-knowledge-base.vercel.app",
+    "https://tomasholtz.com",
   ),
-  title: "Internal Knowledge Base",
+  title: "Ask Documents AI",
   description:
-    "Internal Knowledge Base using Retrieval Augmented Generation and Middleware",
+    "Ask Documents AI is a tool that helps you generate documents using natural language.",
 };
 
 export default function RootLayout({
