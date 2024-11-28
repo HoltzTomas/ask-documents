@@ -47,44 +47,6 @@ export const Files = ({
     setIsFilesVisible(false);
   });
 
-  const handleFileUpload = async (file: File) => {
-    setUploadQueue((currentQueue) => [...currentQueue, file.name]);
-
-    try {
-      // Get the presigned URL for the upload
-      const response = await fetch(`/api/files/upload?filename=${file.name}`, {
-        method: 'POST',
-      });
-      const { url, fields } = await response.json();
-
-      // Prepare the form data for the upload
-      const formData = new FormData();
-      Object.entries(fields).forEach(([key, value]) => {
-        formData.append(key, value as string);
-      });
-      formData.append('file', file);
-
-      // Upload the file directly to Vercel Blob
-      await fetch(url, {
-        method: 'POST',
-        body: formData,
-      });
-
-      // Notify the server that the upload is complete
-      await fetch(`/api/files/process?filename=${file.name}`, {
-        method: 'POST',
-      });
-
-      mutate([...(files || []), { pathname: file.name }]);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    } finally {
-      setUploadQueue((currentQueue) =>
-        currentQueue.filter((filename) => filename !== file.name)
-      );
-    }
-  };
-
   return (
     <motion.div
       className="fixed bg-zinc-900/50 h-dvh w-dvw top-0 left-0 z-40 flex flex-row justify-center items-center"
@@ -115,7 +77,7 @@ export const Files = ({
         <div className="flex flex-row justify-between items-center">
           <div className="text-sm flex flex-row gap-3">
             <div className="text-zinc-900 dark:text-zinc-300">
-              Manage Knowledge Base (Max. 5TB per file)
+              Manage Knowledge Base (Max. 4.5MB per file)
             </div>
           </div>
 
@@ -127,10 +89,22 @@ export const Files = ({
             className="opacity-0 pointer-events-none w-1"
             accept="application/pdf"
             multiple={false}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
+            onChange={async (event) => {
+              const file = event.target.files![0];
+
               if (file) {
-                handleFileUpload(file);
+                setUploadQueue((currentQueue) => [...currentQueue, file.name]);
+
+                await fetch(`/api/files/upload?filename=${file.name}`, {
+                  method: "POST",
+                  body: file,
+                });
+
+                setUploadQueue((currentQueue) =>
+                  currentQueue.filter((filename) => filename !== file.name),
+                );
+
+                mutate([...(files || []), { pathname: file.name }]);
               }
             }}
           />
